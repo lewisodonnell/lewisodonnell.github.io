@@ -62,13 +62,12 @@ const { title, description } = Astro.props;
           addEventListener('scroll', onScroll, { passive: true });
         }
 
+        // Toggled (not one-shot) so the reveals and wave draws replay every
+        // time an element scrolls back into view.
         const reveal = new IntersectionObserver(
-          (entries, observer) => {
+          (entries) => {
             for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('in-view');
-                observer.unobserve(entry.target);
-              }
+              entry.target.classList.toggle('in-view', entry.isIntersecting);
             }
           },
           { rootMargin: '0px 0px -8% 0px' },
@@ -113,6 +112,78 @@ const { title, description } = Astro.props;
                     Math.max(0, 1 - y / (window.innerHeight * 0.9)),
                   );
                 }
+              },
+              { passive: true },
+            );
+          }
+
+          // Soft snap: once scrolling settles near a panel, glide to it with
+          // our own slow easing (native CSS snap cannot be slowed down).
+          const panels = [...document.querySelectorAll('[data-hero], .section')];
+          if (panels.length && matchMedia('(min-width: 861px)').matches) {
+            const OFFSET = 80; // keeps panels clear of the nav, like scroll-padding-top
+            // Layout position, ignoring transforms — panels mid-entrance
+            // animation would otherwise skew the snap target.
+            const absTop = (el) => {
+              let top = 0;
+              while (el) {
+                top += el.offsetTop;
+                el = el.offsetParent;
+              }
+              return top;
+            };
+            let settleTimer = null;
+            let glideFrame = null;
+            const cancelGlide = () => {
+              if (glideFrame) cancelAnimationFrame(glideFrame);
+              glideFrame = null;
+            };
+            const glide = (to) => {
+              const from = window.scrollY;
+              const dist = to - from;
+              const duration = Math.min(
+                1300,
+                Math.max(700, 550 + Math.abs(dist) * 0.55),
+              );
+              const start = performance.now();
+              const ease = (t) =>
+                t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+              const step = (now) => {
+                const t = Math.min(1, (now - start) / duration);
+                window.scrollTo({
+                  top: from + dist * ease(t),
+                  behavior: 'instant',
+                });
+                glideFrame = t < 1 ? requestAnimationFrame(step) : null;
+              };
+              cancelGlide();
+              glideFrame = requestAnimationFrame(step);
+            };
+            for (const ev of ['wheel', 'touchstart', 'keydown'])
+              addEventListener(ev, cancelGlide, { passive: true });
+            addEventListener(
+              'scroll',
+              () => {
+                if (glideFrame) return; // our own glide is scrolling
+                clearTimeout(settleTimer);
+                settleTimer = setTimeout(() => {
+                  const y = window.scrollY;
+                  const max =
+                    document.documentElement.scrollHeight - window.innerHeight;
+                  if (y >= max - 24) return; // resting at the footer
+                  let target = null;
+                  let best = Infinity;
+                  for (const panel of panels) {
+                    const top = Math.max(0, absTop(panel) - OFFSET);
+                    const d = Math.abs(top - y);
+                    if (d < best) {
+                      best = d;
+                      target = top;
+                    }
+                  }
+                  if (target !== null && best > 2 && best < window.innerHeight * 0.35)
+                    glide(target);
+                }, 170);
               },
               { passive: true },
             );

@@ -186,14 +186,8 @@ html {
   background: var(--bg);
   /* keep anchor targets clear of the sticky nav */
   scroll-padding-top: 5rem;
-  /* sections snap gently into place (full-height panels on the home page) */
-  scroll-snap-type: y proximity;
-}
-
-@media (max-width: 860px) {
-  html {
-    scroll-snap-type: none;
-  }
+  /* NOTE: panel snapping is done in JS (soft glide in Base.astro), not with
+     CSS scroll-snap — native snap speed cannot be slowed down. */
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -369,11 +363,11 @@ a:hover {
   }
 
   /* The wave dividers draw themselves in: the path carries pathLength="1"
-     so a dash offset from 1 -> 0 sweeps left to right. */
+     so a dash offset from 1 -> 0 sweeps slowly left to right. */
   html.js svg.divider path {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
-    transition: stroke-dashoffset 1100ms ease-out;
+    transition: stroke-dashoffset 2400ms ease-out;
   }
 
   html.js svg.divider.in-view path {
