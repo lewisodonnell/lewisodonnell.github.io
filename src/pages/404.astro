@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import SignalDivider from '../components/SignalDivider.astro';
+import { SITE } from '../lib/site';
+---
+
+<Base
+  title={`Page not found — ${SITE.name}`}
+  description="This page doesn’t exist."
+>
+  <meta name="robots" content="noindex" slot="head" />
+  <main id="main" class="wrap">
+    <h1>404</h1>
+    <p>There’s no page at this address. The signal is flat.</p>
+    <SignalDivider seed={404} />
+    <p class="back"><a href="/">Back to the front page</a></p>
+  </main>
+</Base>
+
+<style>
+  main {
+    padding-top: clamp(var(--space-6), 18vh, 9rem);
+  }
+
+  h1 {
+    font-size: var(--step-4);
+    margin-bottom: var(--space-3);
+  }
+
+  .back {
+    margin-top: var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+import SignalDivider from './SignalDivider.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  seed?: number;
+}
+const { id, title, seed } = Astro.props;
+---
+
+<section id={id} aria-labelledby={`${id}-heading`} class="section">
+  <SignalDivider seed={seed} />
+  <h2 id={`${id}-heading`}>{title}</h2>
+  <slot />
+</section>
+
+<style>
+  .section {
+    margin-top: var(--space-7);
+  }
+
+  h2 {
+    font-size: var(--step-2);
+    margin: var(--space-4) 0;
+  }
+</style>

@@ -1,0 +1,37 @@
+# Selected work, rendered top-to-bottom.
+# Adding a project = adding an entry here and, optionally, dropping an image
+# into public/projects/. Nothing else to touch.
+#
+# Fields:
+#   name        — project name
+#   image       — optional, e.g. /projects/benchmark.png (omit or '' for none)
+#   imageAlt    — alt text for the image (set it when you add an image)
+#   description — two sentences: what you did and why it matters
+#   links       — label → URL map. Non-URL values ([FILL]) are not rendered.
+
+- name: '[FILL: benchmark name]'
+  image: '' # e.g. /projects/benchmark.png
+  imageAlt: ''
+  description: >-
+    An open-source benchmark for evaluating time-series foundation models on
+    [FILL: domain/tasks]. [FILL: one sentence on scale or what it enables].
+  links:
+    Code: '[FILL: repo URL]'
+    Paper: '[FILL: arXiv URL]'
+
+- name: Foundation models for plasma diagnostics (ongoing)
+  image: ''
+  imageAlt: ''
+  description: >-
+    Pretraining transformer models on multi-machine tokamak diagnostic
+    signals; the data is restricted, but all model and training code is
+    released as I go.
+  links:
+    Code: '[FILL: repo URL]'
+
+- name: Geometric generative modelling
+  image: ''
+  imageAlt: ''
+  description: >-
+    [FILL: two sentences on the MSc project — what method, what problem.]
+  links: {}

@@ -1,0 +1,15 @@
+# News items, one per line on the site. Items are sorted newest-first by
+# `date` (YYYY-MM). `text` may contain inline HTML links, e.g.
+#   text: 'Released <a href="https://github.com/...">FusionBench</a>, an open-source…'
+# Adding an item = adding an entry here. Nothing else to touch.
+
+- date: 2026-06
+  text: 'Submitted “[FILL: workshop paper title]” to the ICML 2026 [FILL: workshop name] workshop.'
+
+# [FILL: once the repo URL is known, wrap the benchmark name in a link:
+#   text: 'Released <a href="https://github.com/…">Name</a>, an open-source…' ]
+- date: 2026-04 # [FILL: actual month/year of the benchmark release]
+  text: 'Released [FILL: benchmark name], an open-source benchmark for time-series foundation models.'
+
+- date: 2025-09 # [FILL: actual PhD start month/year]
+  text: 'Started my PhD at UCL, working on machine learning for nuclear fusion.'

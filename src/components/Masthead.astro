@@ -1,0 +1,52 @@
+---
+import { SITE, LINKS } from '../lib/site';
+import { hasCV } from '../lib/assets';
+
+const links = [
+  { label: 'Email', url: `mailto:${SITE.email}` },
+  ...LINKS.filter((l) => l.url),
+  // The CV link appears automatically once public/cv.pdf exists.
+  ...(hasCV ? [{ label: 'CV', url: '/cv.pdf' }] : []),
+];
+---
+
+<header class="masthead wrap">
+  <h1>{SITE.name}</h1>
+  <p class="tagline">{SITE.tagline}</p>
+  <nav aria-label="Profile links">
+    <ul class="links" role="list">
+      {links.map((l) => <li><a href={l.url!}>{l.label}</a></li>)}
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .masthead {
+    padding-top: clamp(var(--space-6), 9vh, 6.5rem);
+  }
+
+  h1 {
+    font-size: clamp(2.125rem, 7vw, var(--step-4));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .tagline {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-size: var(--step-1);
+    line-height: 1.35;
+    margin: var(--space-3) 0 0;
+  }
+
+  .links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+</style>

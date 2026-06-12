@@ -1,0 +1,54 @@
+---
+// Minimal top navigation for pages other than the front page.
+import { SITE } from '../lib/site';
+
+interface Props {
+  current?: 'blog';
+}
+const { current } = Astro.props;
+---
+
+<nav class="sitenav wrap" aria-label="Site">
+  <a class="name" href="/">{SITE.name}</a>
+  {
+    current === 'blog' ? (
+      <span class="here" aria-current="page">
+        Writing
+      </span>
+    ) : (
+      <a class="here-link" href="/blog/">
+        Writing
+      </a>
+    )
+  }
+</nav>
+
+<style>
+  .sitenav {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: var(--space-4);
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-size: var(--step-1);
+    text-decoration: none;
+  }
+
+  .name:hover {
+    text-decoration: underline;
+  }
+
+  .here,
+  .here-link {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  .here {
+    color: var(--ink-secondary);
+  }
+</style>

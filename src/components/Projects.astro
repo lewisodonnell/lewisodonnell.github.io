@@ -1,0 +1,108 @@
+---
+import projects from '../data/projects.yaml';
+
+type Project = {
+  name: string;
+  image?: string;
+  imageAlt?: string;
+  description: string;
+  links?: Record<string, string>;
+};
+
+const items = projects as Project[];
+
+const real = (url?: string) =>
+  !!url && (url.startsWith('http') || url.startsWith('/'));
+---
+
+<ul class="projects" role="list">
+  {
+    items.map((p) => {
+      const links = Object.entries(p.links ?? {}).filter(([, url]) =>
+        real(url),
+      );
+      return (
+        <li class:list={['project', { 'has-image': real(p.image) }]}>
+          {real(p.image) && (
+            <img
+              class="image"
+              src={p.image}
+              alt={p.imageAlt ?? ''}
+              width="160"
+              height="120"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+          <div>
+            <h3>{p.name}</h3>
+            <p class="desc">{p.description}</p>
+            {links.length > 0 && (
+              <p class="links">
+                {links.map(([label, url]) => (
+                  <a href={url}>{label}</a>
+                ))}
+              </p>
+            )}
+          </div>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .projects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .project {
+    margin-bottom: var(--space-5);
+  }
+
+  .project:last-child {
+    margin-bottom: 0;
+  }
+
+  .project.has-image {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .image {
+    width: 10rem;
+    height: 7.5rem;
+    object-fit: cover;
+    border: 1px solid var(--hairline);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+    line-height: 1.3;
+    margin: 0 0 var(--space-1);
+  }
+
+  .desc {
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  .links {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  @media (max-width: 480px) {
+    .project.has-image {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

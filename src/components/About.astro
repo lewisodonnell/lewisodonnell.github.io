@@ -1,0 +1,74 @@
+---
+import { hasHeadshot } from '../lib/assets';
+---
+
+<div class:list={['about', { 'has-photo': hasHeadshot }]}>
+  <div class="bio">
+    <p>
+      I’m a PhD student at UCL working on machine learning for nuclear fusion
+      [FILL: group/centre name, supervisor if you want it listed]. My research
+      focuses on time-series foundation models for plasma diagnostics:
+      pretraining on large, heterogeneous tokamak signal data so that
+      downstream tasks like [FILL: 1–2 concrete downstream tasks, e.g.
+      disruption prediction / confinement-state classification] need far less
+      labelled data.
+    </p>
+    <p>
+      I previously worked on geometric generative modelling during my MSc at
+      [FILL: institution].
+    </p>
+  </div>
+  {
+    // The photo appears automatically once public/headshot.jpg exists.
+    hasHeadshot && (
+      <img
+        class="photo"
+        src="/headshot.jpg"
+        alt="Portrait of Lewis O’Donnell"
+        width="168"
+        height="210"
+        loading="lazy"
+        decoding="async"
+      />
+    )
+  }
+</div>
+
+<style>
+  .about {
+    display: grid;
+    gap: var(--space-4) var(--space-5);
+  }
+
+  .about.has-photo {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+
+  .bio p {
+    max-width: 60ch;
+  }
+
+  .bio p:last-child {
+    margin-bottom: 0;
+  }
+
+  .photo {
+    width: 10.5rem;
+    height: 13.125rem;
+    object-fit: cover;
+    border: 1px solid var(--hairline);
+  }
+
+  @media (max-width: 600px) {
+    .about.has-photo {
+      grid-template-columns: 1fr;
+    }
+
+    .photo {
+      order: -1;
+      width: 8.5rem;
+      height: 10.625rem;
+    }
+  }
+</style>

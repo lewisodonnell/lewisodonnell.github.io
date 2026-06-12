@@ -1,0 +1,46 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Base from './Base.astro';
+import SiteNav from '../components/SiteNav.astro';
+import { SITE } from '../lib/site';
+import 'katex/dist/katex.min.css';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+const { post } = Astro.props;
+const { title, date, summary } = post.data;
+
+const fmt = date.toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+
+<Base title={`${title} — ${SITE.name}`} description={summary}>
+  <SiteNav />
+  <main id="main" class="wrap">
+    <article class="prose">
+      <h1>{title}</h1>
+      <p class="post-meta">
+        <time datetime={date.toISOString().slice(0, 10)}>{fmt}</time>
+      </p>
+      <slot />
+    </article>
+    <p class="back"><a href="/blog/">← All writing</a></p>
+  </main>
+</Base>
+
+<style>
+  main {
+    padding-top: var(--space-6);
+  }
+
+  .back {
+    margin: var(--space-6) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+</style>

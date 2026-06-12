@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.claude/
+.DS_Store
+npm-debug.log*
+
+# cached source font for the OG generator (re-downloaded on demand)
+scripts/.fonts/

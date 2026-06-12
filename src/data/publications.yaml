@@ -1,0 +1,36 @@
+# Publications, rendered top-to-bottom (keep newest first).
+# Adding a paper = adding an entry here and, optionally, dropping a thumbnail
+# image into public/thumbnails/. Nothing else to touch.
+#
+# Fields:
+#   title      — paper title
+#   authors    — list of names; yours is bolded automatically
+#   venue      — venue or status line, e.g. 'NeurIPS 2026' or 'arXiv preprint'
+#   year       — number
+#   thumbnail  — optional, e.g. /thumbnails/paper.png (omit or '' for none)
+#   links      — label → URL map (arXiv, PDF, Code, Blog post, …).
+#                Entries whose value is not a real URL are not rendered,
+#                so [FILL] placeholders stay off the page until filled in.
+
+- title: '[FILL: benchmark paper title]'
+  authors:
+    - Lewis O’Donnell
+    - '[FILL: co-authors]'
+  venue: 'arXiv preprint' # [FILL: venue / preprint status]
+  year: 2026
+  thumbnail: '' # e.g. /thumbnails/benchmark.png
+  links:
+    arXiv: '[FILL: arXiv URL]'
+    Code: '[FILL: repo URL]'
+
+# If the ICML workshop submission is the same paper as the benchmark above,
+# delete this entry and set the venue above to
+# 'Under review, ICML 2026 [workshop name] workshop' instead.
+- title: '[FILL: ICML workshop paper title]'
+  authors:
+    - Lewis O’Donnell
+    - '[FILL: co-authors]'
+  venue: 'Under review, ICML 2026 [FILL: workshop name] workshop'
+  year: 2026
+  thumbnail: ''
+  links: {}

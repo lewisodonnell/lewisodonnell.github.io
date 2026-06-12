@@ -1,0 +1,302 @@
+/* ===========================================================================
+   Global styles: design tokens, fonts, base elements, blog prose.
+   Layout-specific styles live scoped inside the components that own them.
+   =========================================================================== */
+
+/* ---- Self-hosted fonts (latin subsets, variable where it earns its keep) - */
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/newsreader-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/source-sans-3-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/source-sans-3-italic-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---- Design tokens -------------------------------------------------------- */
+
+:root {
+  /* Palette */
+  --bg: #fcfcfa; /* cool paper white */
+  --ink: #16181d; /* cool near-black, all body text */
+  --ink-secondary: #5a5f6a; /* dates, venues, captions */
+  --hairline: #e4e5e2; /* rules, borders */
+  /* Plasma pink-magenta: the colour of the visible H-alpha glow at the edge
+     of a tokamak plasma. Used only for link hover/underline states, the
+     burst in the signal-trace dividers, and the focus ring. */
+  --accent: #c9356b;
+
+  --code-bg: #f5f5f2;
+  --underline: #b8bbc2; /* resting link underline */
+
+  /* Type families */
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-body: 'Source Sans 3', -apple-system, 'Segoe UI', 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas,
+    monospace;
+
+  /* Type scale — anchored at a 17px body, ratio ≈ 1.24 */
+  --step--1: 0.8125rem; /* 13px — dates, venues, metadata */
+  --step-0: 1.0625rem; /* 17px — body */
+  --step-1: 1.3125rem; /* 21px — item titles, tagline */
+  --step-2: 1.625rem; /* 26px — section headings */
+  --step-3: 2.0625rem; /* 33px — page titles */
+  --step-4: 2.625rem; /* 42px — the name */
+
+  /* Space scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.25rem;
+  --space-6: 3.25rem;
+  --space-7: 4.75rem;
+
+  --measure: 68ch;
+
+  /* Shiki code highlighting — quiet, palette-adjacent */
+  --astro-code-foreground: var(--ink);
+  --astro-code-background: var(--code-bg);
+  --astro-code-token-comment: var(--ink-secondary);
+  --astro-code-token-keyword: #3e5c76;
+  --astro-code-token-constant: #3e5c76;
+  --astro-code-token-function: var(--ink);
+  --astro-code-token-parameter: var(--ink);
+  --astro-code-token-string: #7a4e63;
+  --astro-code-token-string-expression: #7a4e63;
+  --astro-code-token-punctuation: var(--ink-secondary);
+  --astro-code-token-link: #3e5c76;
+  /* pre-Shiki-1.0 variable names, kept for compatibility */
+  --astro-code-color-text: var(--ink);
+  --astro-code-color-background: var(--code-bg);
+}
+
+/* ---- Base ----------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--underline);
+}
+
+a:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a {
+    transition:
+      color 120ms ease,
+      text-decoration-color 120ms ease;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---- Layout helpers ------------------------------------------------------- */
+
+.wrap {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 5vw, 2rem);
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+}
+
+.skip:focus {
+  left: var(--space-3);
+  top: var(--space-3);
+}
+
+/* ---- Blog prose (unscoped because it styles rendered markdown) ----------- */
+
+.prose > h1 {
+  font-size: var(--step-3);
+  line-height: 1.15;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.prose .post-meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  margin: 0 0 var(--space-5);
+}
+
+.prose h2 {
+  font-size: var(--step-2);
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+.prose h3 {
+  font-size: var(--step-1);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--space-3);
+  padding-left: 1.25em;
+}
+
+.prose li {
+  margin-bottom: var(--space-1);
+}
+
+.prose blockquote {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--hairline);
+  color: var(--ink-secondary);
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--code-bg);
+  padding: 0.1em 0.3em;
+}
+
+.prose pre {
+  border: 1px solid var(--hairline);
+  padding: var(--space-3) var(--space-4);
+  overflow-x: auto;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  margin: var(--space-4) 0;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--space-1) 0;
+}
+
+.prose img {
+  border: 1px solid var(--hairline);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: var(--space-5) 0;
+}
+
+.prose table {
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  margin: 0 0 var(--space-3);
+}
+
+.prose th,
+.prose td {
+  border-bottom: 1px solid var(--hairline);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.prose th {
+  font-weight: 600;
+}
