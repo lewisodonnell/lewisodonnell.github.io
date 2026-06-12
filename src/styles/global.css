@@ -58,18 +58,23 @@
   --ink-secondary: #5a5f6a; /* dates, venues, captions */
   --hairline: #e4e5e2; /* rules, borders */
   /* Plasma pink-magenta: the colour of the visible H-alpha glow at the edge
-     of a tokamak plasma. Used only for link hover/underline states, the
-     burst in the signal-trace dividers, and the focus ring. */
+     of a tokamak plasma. Used for link hover/underline states, the card
+     spotlight, scroll-spy, and the focus ring. */
   --accent: #c9356b;
 
   --code-bg: #f5f5f2;
   --underline: #b8bbc2; /* resting link underline */
 
-  /* Cards */
+  /* Cards and panels */
   --card-bg: #ffffff;
   --radius: 14px;
   --shadow-rest: 0 1px 2px rgba(22, 24, 29, 0.04);
   --shadow-hover: 0 12px 32px rgba(22, 24, 29, 0.09);
+  --panel-shadow: 0 30px 80px rgba(22, 24, 29, 0.1);
+  --nav-bg: rgba(255, 255, 255, 0.86);
+  --nav-shadow: 0 4px 18px rgba(22, 24, 29, 0.06);
+  /* paper grain for the section panels (black in light, white in dark) */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* Type families */
   --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
@@ -115,6 +120,59 @@
   --astro-code-color-background: var(--code-bg);
 }
 
+/* ---- Dark theme -----------------------------------------------------------
+   Default follows the system; an explicit choice from the nav toggle is
+   stored as html[data-theme] and wins over the system preference.
+   NOTE: keep this block and the media-query copy below in sync. */
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #14161b;
+  --ink: #e8e9ec;
+  --ink-secondary: #9ba0ab;
+  --hairline: #2a2d35;
+  --accent: #e0608f;
+  --code-bg: #191c22;
+  --underline: #4a4f5a;
+  --card-bg: #1b1e25;
+  --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 14px 36px rgba(0, 0, 0, 0.55);
+  --panel-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  --nav-bg: rgba(20, 22, 27, 0.82);
+  --nav-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --astro-code-token-keyword: #7fa8c9;
+  --astro-code-token-constant: #7fa8c9;
+  --astro-code-token-string: #c98fa8;
+  --astro-code-token-string-expression: #c98fa8;
+  --astro-code-token-link: #7fa8c9;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #14161b;
+    --ink: #e8e9ec;
+    --ink-secondary: #9ba0ab;
+    --hairline: #2a2d35;
+    --accent: #e0608f;
+    --code-bg: #191c22;
+    --underline: #4a4f5a;
+    --card-bg: #1b1e25;
+    --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-hover: 0 14px 36px rgba(0, 0, 0, 0.55);
+    --panel-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    --nav-bg: rgba(20, 22, 27, 0.82);
+    --nav-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    --astro-code-token-keyword: #7fa8c9;
+    --astro-code-token-constant: #7fa8c9;
+    --astro-code-token-string: #c98fa8;
+    --astro-code-token-string-expression: #c98fa8;
+    --astro-code-token-link: #7fa8c9;
+  }
+}
+
 /* ---- Base ----------------------------------------------------------------- */
 
 *,
@@ -124,9 +182,18 @@
 }
 
 html {
+  color-scheme: light;
   background: var(--bg);
   /* keep anchor targets clear of the sticky nav */
   scroll-padding-top: 5rem;
+  /* sections snap gently into place (full-height panels on the home page) */
+  scroll-snap-type: y proximity;
+}
+
+@media (max-width: 860px) {
+  html {
+    scroll-snap-type: none;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -137,11 +204,30 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--step-0);
   line-height: 1.6;
+}
+
+/* Faint fixed gradient mesh behind everything — panels glide over it. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      42% 36% at 24% 18%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      48% 42% at 82% 72%,
+      color-mix(in srgb, #5b7c99 9%, transparent),
+      transparent 70%
+    );
 }
 
 h1,
@@ -208,15 +294,41 @@ a:hover {
 /* ---- Cards ---------------------------------------------------------------- */
 
 .card {
+  position: relative;
+  overflow: hidden;
   background: var(--card-bg);
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
   box-shadow: var(--shadow-rest);
 }
 
+/* Inside the section panels, cards sit one layer lower than the panel. */
+.section .card {
+  background: var(--bg);
+}
+
 .card:hover {
-  border-color: #d3d5d1;
+  border-color: color-mix(in srgb, var(--ink) 18%, transparent);
   box-shadow: var(--shadow-hover);
+}
+
+/* Cursor spotlight — position driven by the inline script (--mx/--my). */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    190px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--accent) 11%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+.card:hover::after {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -225,6 +337,10 @@ a:hover {
       transform 200ms ease,
       border-color 200ms ease,
       box-shadow 200ms ease;
+  }
+
+  .card::after {
+    transition: opacity 250ms ease;
   }
 
   .card:hover {
@@ -252,22 +368,31 @@ a:hover {
     transform: none;
   }
 
-  /* The trace dividers draw themselves in: paths carry pathLength="1" so a
-     dash offset from 1 -> 0 sweeps left to right; the accent burst lands
-     slightly after the baseline. */
+  /* The wave dividers draw themselves in: the path carries pathLength="1"
+     so a dash offset from 1 -> 0 sweeps left to right. */
   html.js svg.divider path {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
     transition: stroke-dashoffset 1100ms ease-out;
   }
 
-  html.js svg.divider path + path {
-    transition-duration: 700ms;
-    transition-delay: 320ms;
-  }
-
   html.js svg.divider.in-view path {
     stroke-dashoffset: 0;
+  }
+
+  /* Section panels rise and settle into place as they enter the viewport;
+     the cards inside then cascade with their own stagger. */
+  html.js .section {
+    opacity: 0;
+    transform: translateY(48px) scale(0.96);
+    transition:
+      opacity 750ms ease,
+      transform 750ms cubic-bezier(0.16, 0.84, 0.28, 1);
+  }
+
+  html.js .section.in-view {
+    opacity: 1;
+    transform: none;
   }
 }
 

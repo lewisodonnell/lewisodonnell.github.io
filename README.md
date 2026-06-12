@@ -1,9 +1,11 @@
 # lewisodonnell.github.io
 
 Personal academic website. [Astro](https://astro.build), fully static output,
-vanilla CSS with design tokens, and a single ~1KB inline script (no
-frameworks) for scroll reveals, the self-drawing trace dividers, nav scroll
-state, and scroll-spy. Served from <https://lewisodonnell.github.io>.
+vanilla CSS with design tokens, and a single small inline script (no
+frameworks) for the theme toggle, scroll reveals, self-drawing wave dividers,
+3D card tilt + spotlight, hero parallax, nav state, and scroll-spy. Light and
+dark mode follow the system by default; the nav toggle overrides and is
+remembered. Served from <https://lewisodonnell.github.io>.
 
 ## Run locally
 
@@ -39,7 +41,7 @@ authors, venue, year, links). Optional thumbnail: drop an image into
 **A blog post** — create `src/content/blog/my-post.md` with frontmatter
 `title`, `date`, `summary` (and optionally `draft: true` to keep it out of
 the published site). Math via `$…$` / `$$…$$`, fenced code blocks are
-highlighted. The post appears on `/blog`, in the homepage Writing section,
+highlighted. The post appears on `/blog`, in the homepage Blog section,
 and in `/rss.xml` automatically.
 
 ## Assets dropped in by hand

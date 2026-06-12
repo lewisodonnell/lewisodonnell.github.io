@@ -11,12 +11,12 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 ---
 
 <Base
-  title={`Writing — ${SITE.name}`}
+  title={`Blog — ${SITE.name}`}
   description="Notes on time-series foundation models, fusion, and machine learning research."
 >
   <SiteHeader />
   <main id="main" class="wrap">
-    <h1>Writing</h1>
+    <h1>Blog</h1>
     <WritingList posts={posts} />
   </main>
 </Base>

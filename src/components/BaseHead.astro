@@ -18,7 +18,16 @@ const ogImage = new URL('/og.png', Astro.site);
 <title>{title}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical.href} />
-<meta name="theme-color" content="#FCFCFA" />
+<meta
+  name="theme-color"
+  media="(prefers-color-scheme: light)"
+  content="#FCFCFA"
+/>
+<meta
+  name="theme-color"
+  media="(prefers-color-scheme: dark)"
+  content="#14161B"
+/>
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -26,7 +35,7 @@ const ogImage = new URL('/og.png', Astro.site);
 <link
   rel="alternate"
   type="application/rss+xml"
-  title={`${SITE.name} — Writing`}
+  title={`${SITE.name} — Blog`}
   href={new URL('/rss.xml', Astro.site).href}
 />
 

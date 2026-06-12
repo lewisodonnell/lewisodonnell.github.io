@@ -15,7 +15,7 @@ const items = [
   ['News', `${prefix}#news`],
   ['Publications', `${prefix}#publications`],
   ['Work', `${prefix}#work`],
-  ['Writing', `${prefix}#writing`],
+  ['Blog', `${prefix}#blog`],
 ];
 ---
 
@@ -33,6 +33,34 @@ const items = [
         }
       </ul>
     </nav>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+      <svg
+        class="moon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+      <svg
+        class="sun"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="4"></circle>
+        <path
+          d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"
+        ></path>
+      </svg>
+    </button>
   </div>
 </header>
 
@@ -57,9 +85,9 @@ const items = [
   }
 
   .bar.scrolled {
-    background: rgba(255, 255, 255, 0.86);
+    background: var(--nav-bg);
     border-color: var(--hairline);
-    box-shadow: 0 4px 18px rgba(22, 24, 29, 0.06);
+    box-shadow: var(--nav-shadow);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
   }
@@ -101,6 +129,53 @@ const items = [
     color: var(--accent);
   }
 
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent);
+  }
+
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Moon shown in light mode, sun in dark mode — including system-dark. */
+  .sun {
+    display: none;
+  }
+
+  :global(html[data-theme='dark']) .sun {
+    display: block;
+  }
+
+  :global(html[data-theme='dark']) .moon {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(html:not([data-theme='light'])) .sun {
+      display: block;
+    }
+
+    :global(html:not([data-theme='light'])) .moon {
+      display: none;
+    }
+  }
+
   @media (max-width: 620px) {
     .brand {
       display: none;
@@ -111,7 +186,8 @@ const items = [
     }
 
     nav {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
     }
 
     ul {

@@ -4,24 +4,68 @@ import SignalDivider from './SignalDivider.astro';
 interface Props {
   id: string;
   title: string;
-  seed?: number;
+  /** CSS colour mixed into the panel's top edge (e.g. '#5B7C99' or 'var(--accent)'). */
+  tint?: string;
 }
-const { id, title, seed } = Astro.props;
+const { id, title, tint } = Astro.props;
 ---
 
-<section id={id} aria-labelledby={`${id}-heading`} class="section">
-  <SignalDivider seed={seed} />
+<section
+  id={id}
+  aria-labelledby={`${id}-heading`}
+  class="section"
+  style={tint ? `--tint: ${tint}` : undefined}
+>
+  <SignalDivider />
   <h2 id={`${id}-heading`} class="reveal">{title}</h2>
   <slot />
 </section>
 
 <style>
+  /* Each section is a full-height floating panel: its own tint, paper
+     grain, border and long shadow — planes stacked over the page mesh. */
   .section {
-    margin-top: clamp(var(--space-6), 8vh, var(--space-7));
+    position: relative;
+    overflow: hidden;
+    min-height: min(86vh, 56rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    scroll-snap-align: start;
+    margin: 2.75rem 0;
+    padding: 3rem 3.25rem;
+    background: linear-gradient(
+      175deg,
+      color-mix(in srgb, var(--tint, transparent) 6%, var(--card-bg)),
+      var(--card-bg) 55%
+    );
+    border: 1px solid var(--hairline);
+    border-radius: 24px;
+    box-shadow: var(--panel-shadow);
+  }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--grain);
+    opacity: 0.6;
+    border-radius: inherit;
   }
 
   h2 {
-    font-size: 1.75rem;
+    font-size: clamp(1.75rem, 3vw, 2.2rem);
     margin: var(--space-4) 0;
+  }
+
+  @media (max-width: 860px) {
+    .section {
+      min-height: 0;
+      justify-content: flex-start;
+      margin: 1.5rem 0;
+      padding: 1.75rem 1.25rem;
+      border-radius: 18px;
+    }
   }
 </style>

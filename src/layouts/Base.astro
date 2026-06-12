@@ -15,8 +15,14 @@ const { title, description } = Astro.props;
     <BaseHead title={title} description={description} />
     <script is:inline>
       // Gate for scroll-effect styles: without JS the page renders fully
-      // visible, with no hidden reveal states.
+      // visible, with no hidden reveal states. Also restores an explicit
+      // theme choice before first paint so there is no flash.
       document.documentElement.classList.add('js');
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || theme === 'light')
+          document.documentElement.setAttribute('data-theme', theme);
+      } catch {}
     </script>
     <slot name="head" />
   </head>
@@ -25,9 +31,29 @@ const { title, description } = Astro.props;
     <slot />
     <Footer />
     <script is:inline>
-      // The site's only JavaScript (~1KB, no dependencies): scroll reveals,
-      // self-drawing trace dividers, nav scroll state, and scroll-spy.
+      // The site's only JavaScript (small, no dependencies): theme toggle,
+      // scroll reveals, self-drawing wave dividers, section-panel entrances,
+      // 3D card tilt + spotlight, hero parallax, nav state, and scroll-spy.
       (() => {
+        const motionOK = !matchMedia('(prefers-reduced-motion: reduce)')
+          .matches;
+
+        const toggle = document.querySelector('[data-theme-toggle]');
+        if (toggle) {
+          toggle.addEventListener('click', () => {
+            const root = document.documentElement;
+            const isDark =
+              root.getAttribute('data-theme') === 'dark' ||
+              (!root.getAttribute('data-theme') &&
+                matchMedia('(prefers-color-scheme: dark)').matches);
+            const next = isDark ? 'light' : 'dark';
+            root.setAttribute('data-theme', next);
+            try {
+              localStorage.setItem('theme', next);
+            } catch {}
+          });
+        }
+
         const nav = document.querySelector('[data-nav]');
         if (nav) {
           const onScroll = () =>
@@ -48,8 +74,50 @@ const { title, description } = Astro.props;
           { rootMargin: '0px 0px -8% 0px' },
         );
         document
-          .querySelectorAll('.reveal, svg.divider')
+          .querySelectorAll('.reveal, svg.divider, .section')
           .forEach((el) => reveal.observe(el));
+
+        if (motionOK) {
+          // 3D tilt toward the cursor + spotlight position.
+          document.querySelectorAll('.card').forEach((card) => {
+            card.addEventListener('mousemove', (e) => {
+              const r = card.getBoundingClientRect();
+              const px = (e.clientX - r.left) / r.width;
+              const py = (e.clientY - r.top) / r.height;
+              card.style.transition =
+                'transform 120ms ease, box-shadow 300ms ease, border-color 300ms ease';
+              card.style.transform =
+                'perspective(700px)' +
+                ` rotateX(${((0.5 - py) * 6).toFixed(2)}deg)` +
+                ` rotateY(${((px - 0.5) * 8).toFixed(2)}deg)` +
+                ' translateY(-4px)';
+              card.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+              card.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+            });
+            card.addEventListener('mouseleave', () => {
+              card.style.transform = '';
+              card.style.transition = '';
+            });
+          });
+
+          // The hero recedes and fades as the first panel arrives.
+          const hero = document.querySelector('[data-hero]');
+          if (hero) {
+            addEventListener(
+              'scroll',
+              () => {
+                const y = window.scrollY;
+                if (y < window.innerHeight) {
+                  hero.style.transform = `translateY(${(y * 0.28).toFixed(1)}px)`;
+                  hero.style.opacity = String(
+                    Math.max(0, 1 - y / (window.innerHeight * 0.9)),
+                  );
+                }
+              },
+              { passive: true },
+            );
+          }
+        }
 
         const links = [
           ...document.querySelectorAll('[data-nav] a[href*="#"]'),
