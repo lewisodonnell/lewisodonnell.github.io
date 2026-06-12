@@ -123,19 +123,16 @@ const { title, description } = Astro.props;
         let deckOn = false;
         let rests = [];
         let panelTops = [];
+        let panelHeights = [];
         // All geometry is cached here so the per-frame drift loop performs
         // zero layout reads (reads mid-scroll cause main-thread jank).
+        // Measured at every width: the drift runs on mobile too, only the
+        // deck layout and the settle are desktop-only.
         const measureDeck = () => {
           deckOn = tracks.length > 0 && matchMedia('(min-width: 861px)').matches;
           document.documentElement.classList.toggle('deck', deckOn);
-          if (!deckOn) {
-            for (const p of panels) {
-              p.style.transform = '';
-              p.style.opacity = '';
-            }
-            return;
-          }
           panelTops = panels.map((p) => absTop(p));
+          panelHeights = panels.map((p) => p.offsetHeight);
           // A panel is "at rest" when its top sits just below the nav.
           rests = panelTops.map((top) => Math.max(0, top - 80));
         };
@@ -180,30 +177,59 @@ const { title, description } = Astro.props;
             let framePending = false;
             const drift = () => {
               framePending = false;
-              if (!deckOn) return;
               const y = window.scrollY;
               const vh = window.innerHeight;
               for (let i = 0; i < panels.length; i++) {
                 const el = panels[i];
                 const t = panelTops[i] - y; // viewport position of panel top
-                if (t < OFFSET) {
-                  // Exit: scrolled past its rest — drift into the abyss.
-                  const p = Math.min(1, (OFFSET - t) / (vh * 0.5));
-                  const pp = p * p; // eases in from zero — seamless at rest
-                  const fade = Math.min(1, Math.max(0, (p - 0.2) / 0.7));
-                  el.style.transform =
-                    `translateY(${(-120 * pp).toFixed(1)}px)` +
-                    ` scale(${(1 - 0.1 * pp).toFixed(4)})`;
-                  el.style.opacity = (1 - fade).toFixed(3);
+                if (deckOn) {
+                  // Desktop deck: panels fill the viewport, so the drift is
+                  // keyed to the rest position (panel top under the nav).
+                  if (t < OFFSET) {
+                    // Exit: scrolled past its rest — drift into the abyss.
+                    const p = Math.min(1, (OFFSET - t) / (vh * 0.5));
+                    const pp = p * p; // eases in from zero — seamless at rest
+                    const fade = Math.min(1, Math.max(0, (p - 0.2) / 0.7));
+                    el.style.transform =
+                      `translateY(${(-120 * pp).toFixed(1)}px)` +
+                      ` scale(${(1 - 0.1 * pp).toFixed(4)})`;
+                    el.style.opacity = (1 - fade).toFixed(3);
+                  } else {
+                    // Entry: rising from below, normalising on arrival.
+                    const q = Math.min(1, (t - OFFSET) / (vh - OFFSET));
+                    if (q > 0.001) {
+                      el.style.transform = `scale(${(1 - 0.05 * q).toFixed(4)})`;
+                      el.style.opacity = (1 - 0.55 * q).toFixed(3);
+                    } else if (el.style.transform !== '') {
+                      el.style.transform = '';
+                      el.style.opacity = '';
+                    }
+                  }
                 } else {
-                  // Entry: rising from below, normalising on arrival.
-                  const q = Math.min(1, (t - OFFSET) / (vh - OFFSET));
-                  if (q > 0.001) {
-                    el.style.transform = `scale(${(1 - 0.05 * q).toFixed(4)})`;
-                    el.style.opacity = (1 - 0.55 * q).toFixed(3);
-                  } else if (el.style.transform !== '') {
-                    el.style.transform = '';
-                    el.style.opacity = '';
+                  // Mobile: same appear/disappear language, but panels are
+                  // content-height, so the exit is keyed to the panel's
+                  // BOTTOM edge — content never fades while still being read.
+                  const bottom = t + panelHeights[i];
+                  if (bottom < vh * 0.5) {
+                    const p = Math.min(1, (vh * 0.5 - bottom) / (vh * 0.4));
+                    const pp = p * p;
+                    const fade = Math.min(1, Math.max(0, (p - 0.15) / 0.7));
+                    el.style.transform =
+                      `translateY(${(-50 * pp).toFixed(1)}px)` +
+                      ` scale(${(1 - 0.06 * pp).toFixed(4)})`;
+                    el.style.opacity = (1 - fade).toFixed(3);
+                  } else {
+                    const q = Math.min(
+                      1,
+                      Math.max(0, (t - vh * 0.55) / (vh * 0.45)),
+                    );
+                    if (q > 0.001) {
+                      el.style.transform = `scale(${(1 - 0.04 * q).toFixed(4)})`;
+                      el.style.opacity = (1 - 0.5 * q).toFixed(3);
+                    } else if (el.style.transform !== '') {
+                      el.style.transform = '';
+                      el.style.opacity = '';
+                    }
                   }
                 }
               }

@@ -373,6 +373,13 @@ html.deck main > .panel-track:first-child > :first-child {
   margin-top: 0;
 }
 
+/* The appear/disappear drift also runs on mobile (content-height panels). */
+@media (max-width: 860px) {
+  .panel-track > :first-child {
+    will-change: transform, opacity;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* Entrances are direction-aware: the inline script records which edge an
      element left through (data-from), and it re-enters from that side. */
