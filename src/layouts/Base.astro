@@ -286,8 +286,39 @@ const { title, description } = Astro.props;
             const cancelSpring = () => {
               springActive = false;
             };
+            // Any input takes authority back. The input timestamp also
+            // decides whether the settle may be directional (real gestures)
+            // or must go to the nearest rest (programmatic arrivals like
+            // anchor clicks or back-navigation).
+            let lastInputAt = 0;
             for (const ev of ['wheel', 'touchstart', 'keydown', 'mousedown'])
-              addEventListener(ev, cancelSpring, { passive: true });
+              addEventListener(
+                ev,
+                () => {
+                  lastInputAt = performance.now();
+                  cancelSpring();
+                },
+                { passive: true },
+              );
+
+            // Nav anchor clicks: browsers compute the anchor target from the
+            // panel's TRANSFORMED position, and a panel mid-drift is offset
+            // by its abyss transform — the native scroll lands short and the
+            // settle then walks it to the wrong panel (visible going up).
+            // Drive the spring to the layout-true rest instead.
+            document
+              .querySelectorAll('[data-nav] a[href*="#"]')
+              .forEach((a) => {
+                a.addEventListener('click', (e) => {
+                  if (!deckOn) return;
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                  const idx = panels.findIndex((p) => '#' + p.id === a.hash);
+                  if (idx < 0) return;
+                  e.preventDefault();
+                  history.pushState(null, '', a.hash);
+                  springTo(rests[idx]);
+                });
+              });
 
             let lastY = window.scrollY;
             let scrollDir = 1;
@@ -318,9 +349,13 @@ const { title, description } = Astro.props;
               let target = prev;
               if (next !== prev) {
                 const progress = (y - prev) / (next - prev);
+                // Direction-bias only applies to real gestures; anything
+                // that arrived without user input settles to the nearest.
+                const gestural = performance.now() - lastInputAt < 1500;
                 if (progress < 0.08) target = prev;
                 else if (progress > 0.92) target = next;
-                else target = scrollDir > 0 ? next : prev;
+                else if (gestural) target = scrollDir > 0 ? next : prev;
+                else target = progress > 0.5 ? next : prev;
               }
               if (Math.abs(target - y) > 2) springTo(target);
             };
