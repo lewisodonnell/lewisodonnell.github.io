@@ -350,40 +350,27 @@ svg.divider path {
   transition: stroke 600ms ease;
 }
 
-/* Deck mode (html.deck, set by the inline script when every panel fits the
-   viewport): each panel rides a tall runway and pins while the next one
-   scrolls in over it — at rest exactly one panel is on screen. Without the
-   class (small screens, overflowing panels, no JS) the page is a plain
-   stack. */
+/* Deck mode (html.deck, set by the inline script on wide screens).
+   Deliberately NO CSS scroll-snap (browsers evaluate it per gesture
+   segment — the page catches on every panel) and NO position: sticky
+   (a pinned panel freezes on screen while the scrollbar keeps moving,
+   which also reads as the scroll stopping at every panel). Panels are
+   normal flow, so on-screen motion tracks the scrollbar 1:1; exclusivity
+   at rest comes from generous gaps; the abyss drift is additive parallax
+   on top of native motion; alignment happens in JS only once scrolling
+   has fully stopped. */
 .panel-track {
   position: relative;
 }
 
-/* NOTE: no CSS scroll-snap here on purpose — browsers evaluate snap at the
-   end of every gesture segment (each wheel notch / momentum phase), which
-   reads as the page catching on every panel. Alignment is done in JS on
-   scrollend instead: continuous while scrolling, soft snap only at rest. */
-html.deck .panel-track {
-  height: 105vh;
-}
-
-html.deck main > .panel-track:first-child {
-  height: 100vh;
-}
-
-html.deck main > .panel-track:last-child {
-  height: 100vh;
-}
-
 html.deck .panel-track > :first-child {
-  position: sticky;
-  top: 5rem;
-  margin: 0;
+  min-height: 86vh;
+  margin-block: max(3rem, 7.5vh);
   will-change: transform, opacity;
 }
 
 html.deck main > .panel-track:first-child > :first-child {
-  top: 0;
+  margin-top: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
