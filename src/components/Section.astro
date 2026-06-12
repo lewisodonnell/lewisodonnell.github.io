@@ -15,19 +15,21 @@ interface Props {
 const { id, title, accent, accentDark, texture = 'grain' } = Astro.props;
 ---
 
-<section
-  id={id}
-  aria-labelledby={`${id}-heading`}
-  class="section"
-  data-accent={accent}
-  data-accent-dark={accentDark}
-  data-texture={texture}
-  style={`--tint: ${accent}`}
->
-  <SignalDivider />
-  <h2 id={`${id}-heading`} class="reveal">{title}</h2>
-  <slot />
-</section>
+<div class="panel-track">
+  <section
+    id={id}
+    aria-labelledby={`${id}-heading`}
+    class="section"
+    data-accent={accent}
+    data-accent-dark={accentDark}
+    data-texture={texture}
+    style={`--tint: ${accent}`}
+  >
+    <SignalDivider />
+    <h2 id={`${id}-heading`} class="reveal">{title}</h2>
+    <slot />
+  </section>
+</div>
 
 <style>
   /* Each section is a full-height floating panel: its own accent tint,
@@ -49,12 +51,6 @@ const { id, title, accent, accentDark, texture = 'grain' } = Astro.props;
     border: 1px solid var(--hairline);
     border-radius: 24px;
     box-shadow: var(--panel-shadow);
-  }
-
-  /* The deck overlap: each panel tucks slightly under the one before it
-     (z-order lives in global.css — earlier panels in front). */
-  .section + .section {
-    margin-top: -3.25rem;
   }
 
   .section::before {
@@ -122,8 +118,5 @@ const { id, title, accent, accentDark, texture = 'grain' } = Astro.props;
       border-radius: 18px;
     }
 
-    .section + .section {
-      margin-top: -0.75rem;
-    }
   }
 </style>

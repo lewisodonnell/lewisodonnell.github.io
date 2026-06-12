@@ -103,8 +103,50 @@ const { title, description } = Astro.props;
           { rootMargin: '0px 0px -8% 0px' },
         );
         document
-          .querySelectorAll('.reveal, svg.divider, .section')
+          .querySelectorAll('.reveal, svg.divider')
           .forEach((el) => reveal.observe(el));
+
+        // Deck mode: each panel rides a tall runway and pins full-screen, so
+        // at rest exactly one panel is visible; neighbours only appear while
+        // scrolling. Enabled when every panel fits the viewport — otherwise
+        // (small screens, overflowing content, no JS) it stays a plain stack.
+        const tracks = [...document.querySelectorAll('.panel-track')];
+        const absTop = (el) => {
+          let top = 0;
+          while (el) {
+            top += el.offsetTop;
+            el = el.offsetParent;
+          }
+          return top;
+        };
+        let deckOn = false;
+        let rests = [];
+        let trackTops = [];
+        const measureDeck = () => {
+          deckOn =
+            tracks.length > 0 &&
+            matchMedia('(min-width: 861px)').matches &&
+            tracks.every(
+              (t) => t.firstElementChild.offsetHeight <= innerHeight - 70,
+            );
+          document.documentElement.classList.toggle('deck', deckOn);
+          if (!deckOn) {
+            for (const t of tracks) {
+              t.firstElementChild.style.transform = '';
+              t.firstElementChild.style.opacity = '';
+            }
+            return;
+          }
+          trackTops = tracks.map((t) => absTop(t));
+          rests = trackTops.map((top, i) => (i === 0 ? 0 : top));
+        };
+        measureDeck();
+        addEventListener('load', measureDeck);
+        let resizeTimer = null;
+        addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(measureDeck, 150);
+        });
 
         if (motionOK) {
           // 3D tilt toward the cursor + spotlight position.
@@ -129,39 +171,59 @@ const { title, description } = Astro.props;
             });
           });
 
-          // The hero recedes and fades as the first panel arrives.
-          const hero = document.querySelector('[data-hero]');
-          if (hero) {
-            addEventListener(
-              'scroll',
-              () => {
-                const y = window.scrollY;
-                if (y < window.innerHeight) {
-                  hero.style.transform = `translateY(${(y * 0.28).toFixed(1)}px)`;
-                  hero.style.opacity = String(
-                    Math.max(0, 1 - y / (window.innerHeight * 0.9)),
-                  );
+          // Scroll-driven drift: the resting panel fades, shrinks and rises
+          // into the abyss as the next one slides up — fully gone before you
+          // arrive. Runs every scroll frame in both directions.
+          if (tracks.length) {
+            const OFFSET = 80;
+            let framePending = false;
+            const drift = () => {
+              framePending = false;
+              if (!deckOn) return;
+              const y = window.scrollY;
+              const vh = window.innerHeight;
+              tracks.forEach((t, i) => {
+                const el = t.firstElementChild;
+                const isLast = i === tracks.length - 1;
+                // Exit: progress from this panel's rest towards the next.
+                const span = isLast
+                  ? Infinity
+                  : (rests[i + 1] - rests[i]) * 0.8;
+                const ex = Math.min(1, Math.max(0, (y - rests[i]) / span));
+                // Entry: progress sliding up from the viewport bottom.
+                const en = Math.min(
+                  1,
+                  Math.max(0, (vh - (trackTops[i] - y)) / (vh - OFFSET)),
+                );
+                if (ex > 0) {
+                  const e = ex * ex;
+                  el.style.transform =
+                    `translateY(${(-70 * e).toFixed(1)}px)` +
+                    ` scale(${(1 - 0.14 * e).toFixed(4)})`;
+                  el.style.opacity = (1 - ex).toFixed(3);
+                } else if (en < 1) {
+                  el.style.transform = `scale(${(0.96 + 0.04 * en).toFixed(4)})`;
+                  el.style.opacity = (0.35 + 0.65 * en).toFixed(3);
+                } else {
+                  el.style.transform = '';
+                  el.style.opacity = '';
                 }
-              },
-              { passive: true },
-            );
-          }
-
-          // Soft snap: once scrolling settles near a panel, glide to it with
-          // our own slow easing (native CSS snap cannot be slowed down).
-          const panels = [...document.querySelectorAll('[data-hero], .section')];
-          if (panels.length && matchMedia('(min-width: 861px)').matches) {
-            const OFFSET = 80; // keeps panels clear of the nav, like scroll-padding-top
-            // Layout position, ignoring transforms — panels mid-entrance
-            // animation would otherwise skew the snap target.
-            const absTop = (el) => {
-              let top = 0;
-              while (el) {
-                top += el.offsetTop;
-                el = el.offsetParent;
-              }
-              return top;
+              });
             };
+            const queueDrift = () => {
+              if (!framePending) {
+                framePending = true;
+                requestAnimationFrame(drift);
+              }
+            };
+            queueDrift();
+            addEventListener('scroll', queueDrift, { passive: true });
+            addEventListener('resize', queueDrift, { passive: true });
+            addEventListener('load', queueDrift);
+
+            // Soft snap: when scrolling settles, glide to the nearest panel's
+            // rest with a slow ease, so you never park half-way between two
+            // panels. Cancelled by any user input; footer stays reachable.
             let settleTimer = null;
             let glideFrame = null;
             const cancelGlide = () => {
@@ -194,25 +256,22 @@ const { title, description } = Astro.props;
             addEventListener(
               'scroll',
               () => {
-                if (glideFrame) return; // our own glide is scrolling
+                if (glideFrame || !deckOn) return;
                 clearTimeout(settleTimer);
                 settleTimer = setTimeout(() => {
                   const y = window.scrollY;
-                  const max =
-                    document.documentElement.scrollHeight - window.innerHeight;
-                  if (y >= max - 24) return; // resting at the footer
+                  // Beyond the last panel's rest is footer territory — free.
+                  if (!deckOn || y > rests[rests.length - 1] + 4) return;
                   let target = null;
                   let best = Infinity;
-                  for (const panel of panels) {
-                    const top = Math.max(0, absTop(panel) - OFFSET);
-                    const d = Math.abs(top - y);
+                  for (const rest of rests) {
+                    const d = Math.abs(rest - y);
                     if (d < best) {
                       best = d;
-                      target = top;
+                      target = rest;
                     }
                   }
-                  if (target !== null && best > 2 && best < window.innerHeight * 0.35)
-                    glide(target);
+                  if (target !== null && best > 2) glide(target);
                 }, 170);
               },
               { passive: true },
