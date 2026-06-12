@@ -359,24 +359,16 @@ svg.divider path {
   position: relative;
 }
 
-/* Panel alignment is native CSS snap — composited by the browser, so it
-   rides momentum smoothly with no script-driven scrolling to fight it. */
-html.deck {
-  scroll-snap-type: y proximity;
-}
-
+/* NOTE: no CSS scroll-snap here on purpose — browsers evaluate snap at the
+   end of every gesture segment (each wheel notch / momentum phase), which
+   reads as the page catching on every panel. Alignment is done in JS on
+   scrollend instead: continuous while scrolling, soft snap only at rest. */
 html.deck .panel-track {
   height: 105vh;
-  scroll-snap-align: start;
-  /* cancel scroll-padding-top so a panel snaps exactly where the previous
-     one has fully left the viewport (the track top) */
-  scroll-margin-top: -5rem;
 }
 
 html.deck main > .panel-track:first-child {
   height: 100vh;
-  /* large positive margin clamps this snap point to the very top of page */
-  scroll-margin-top: 10rem;
 }
 
 html.deck main > .panel-track:last-child {

@@ -225,9 +225,108 @@ const { title, description } = Astro.props;
             addEventListener('resize', queueDrift, { passive: true });
             addEventListener('load', queueDrift);
 
-            // Scrolling is 100% browser-native — panel alignment is handled
-            // by CSS scroll-snap (see global.css), so there is no script
-            // writing scroll positions and nothing to fight the trackpad.
+            // Scrolling itself is 100% browser-native and continuous — no
+            // wheel interception, no CSS snap catching at panels. Alignment
+            // happens only once scrolling has fully stopped: the browser's
+            // scrollend event (fires after momentum completes, so it cannot
+            // engage mid-gesture), with a stillness-checked idle fallback
+            // for browsers without scrollend. Any input cancels instantly.
+            let springActive = false;
+            let springTarget = 0;
+            let springPos = 0;
+            let springLastT = 0;
+            const springStep = (now) => {
+              if (!springActive) return;
+              // If anything else moved the page (programmatic jump, anchor,
+              // find-in-page), yield rather than fight it.
+              if (Math.abs(window.scrollY - springPos) > 60) {
+                springActive = false;
+                return;
+              }
+              const dt = Math.min(0.05, (now - springLastT) / 1000);
+              springLastT = now;
+              springPos +=
+                (springTarget - springPos) * (1 - Math.exp(-4.2 * dt));
+              if (Math.abs(springTarget - springPos) < 0.5) {
+                springPos = springTarget;
+                springActive = false;
+              }
+              window.scrollTo({ top: springPos, behavior: 'instant' });
+              if (springActive) requestAnimationFrame(springStep);
+            };
+            const springTo = (target) => {
+              springTarget = target;
+              if (!springActive) {
+                springActive = true;
+                springPos = window.scrollY;
+                springLastT = performance.now();
+                requestAnimationFrame(springStep);
+              }
+            };
+            const cancelSpring = () => {
+              springActive = false;
+            };
+            for (const ev of ['wheel', 'touchstart', 'keydown', 'mousedown'])
+              addEventListener(ev, cancelSpring, { passive: true });
+
+            let lastY = window.scrollY;
+            let scrollDir = 1;
+            addEventListener(
+              'scroll',
+              () => {
+                const yNow = window.scrollY;
+                if (yNow !== lastY) scrollDir = yNow > lastY ? 1 : -1;
+                lastY = yNow;
+              },
+              { passive: true },
+            );
+
+            const settle = () => {
+              if (!deckOn || springActive) return;
+              const y = window.scrollY;
+              // Beyond the last panel's rest is footer territory — free.
+              if (y > rests[rests.length - 1] + 4) return;
+              let prev = rests[0];
+              let next = rests[rests.length - 1];
+              for (const rest of rests) {
+                if (rest <= y) prev = rest;
+                else {
+                  next = rest;
+                  break;
+                }
+              }
+              let target = prev;
+              if (next !== prev) {
+                const progress = (y - prev) / (next - prev);
+                if (progress < 0.08) target = prev;
+                else if (progress > 0.92) target = next;
+                else target = scrollDir > 0 ? next : prev;
+              }
+              if (Math.abs(target - y) > 2) springTo(target);
+            };
+            // Settle only after the page has been truly still: scrollend
+            // alone fires between discrete wheel notches when rolling, and a
+            // naive idle timer can fire inside sparse momentum tails — the
+            // stillness re-check defeats both.
+            const settleWhenStill = () => {
+              const y0 = window.scrollY;
+              setTimeout(() => {
+                if (window.scrollY === y0 && !springActive) settle();
+              }, 160);
+            };
+            if ('onscrollend' in window) {
+              addEventListener('scrollend', settleWhenStill);
+            } else {
+              let idleTimer = null;
+              addEventListener(
+                'scroll',
+                () => {
+                  clearTimeout(idleTimer);
+                  idleTimer = setTimeout(settleWhenStill, 320);
+                },
+                { passive: true },
+              );
+            }
           }
         }
 
