@@ -221,86 +221,116 @@ const { title, description } = Astro.props;
             addEventListener('resize', queueDrift, { passive: true });
             addEventListener('load', queueDrift);
 
-            // Soft snap: when scrolling settles, glide to the nearest panel's
-            // rest with a slow ease, so you never park half-way between two
-            // panels. Cancelled by any user input; footer stays reachable.
-            let settleTimer = null;
-            let glideFrame = null;
-            const cancelGlide = () => {
-              if (glideFrame) cancelAnimationFrame(glideFrame);
-              glideFrame = null;
+            // One continuous spring drives all assisted motion: the page
+            // exponentially eases toward a target, and new gestures simply
+            // move the target — chained flicks flow into one another with no
+            // stop between panels.
+            let springActive = false;
+            let springTarget = 0;
+            let springPos = 0;
+            let springLastT = 0;
+            const springStep = (now) => {
+              if (!springActive) return;
+              const dt = Math.min(0.05, (now - springLastT) / 1000);
+              springLastT = now;
+              const k = 1 - Math.exp(-4.2 * dt);
+              springPos += (springTarget - springPos) * k;
+              if (Math.abs(springTarget - springPos) < 0.5) {
+                springPos = springTarget;
+                springActive = false;
+              }
+              window.scrollTo({ top: springPos, behavior: 'instant' });
+              if (springActive) requestAnimationFrame(springStep);
             };
-            const glide = (to) => {
-              const from = window.scrollY;
-              const dist = to - from;
-              const duration = Math.min(
-                1300,
-                Math.max(700, 550 + Math.abs(dist) * 0.55),
-              );
-              const start = performance.now();
-              const ease = (t) =>
-                t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-              const step = (now) => {
-                const t = Math.min(1, (now - start) / duration);
-                window.scrollTo({
-                  top: from + dist * ease(t),
-                  behavior: 'instant',
-                });
-                glideFrame = t < 1 ? requestAnimationFrame(step) : null;
-              };
-              cancelGlide();
-              glideFrame = requestAnimationFrame(step);
-              return duration;
+            const springTo = (target) => {
+              springTarget = target;
+              if (!springActive) {
+                springActive = true;
+                springPos = window.scrollY;
+                springLastT = performance.now();
+                requestAnimationFrame(springStep);
+              }
             };
-            for (const ev of ['touchstart', 'keydown'])
-              addEventListener(ev, cancelGlide, { passive: true });
+            const cancelSpring = () => {
+              springActive = false;
+            };
+            // Touch, keyboard and scrollbar grabs take authority back.
+            for (const ev of ['touchstart', 'keydown', 'mousedown'])
+              addEventListener(ev, cancelSpring, { passive: true });
 
-            // Wheel takeover: one wheel gesture moves exactly one panel.
-            // Trackpad inertia counts as the same gesture; a reverse flick
-            // mid-glide turns around. Pinch-zoom, horizontal scrolling, the
+            // Wheel: each fresh gesture moves the target one panel further,
+            // so rolling the wheel travels continuously through the deck.
+            // Trackpad inertia tails fold into the running motion, gentle
+            // sustained drags accumulate into advances, and a reverse flick
+            // turns around mid-flight. Pinch-zoom, horizontal scrolling, the
             // top edge and the footer zone stay native.
-            const adjacent = (dir) => {
-              const y = window.scrollY;
+            const adjacentFrom = (from, dir) => {
               if (dir > 0) {
-                for (const r of rests) if (r > y + 2) return r;
+                for (const r of rests) if (r > from + 2) return r;
                 return null; // past the last panel — footer is native
               }
               for (let i = rests.length - 1; i >= 0; i--)
-                if (rests[i] < y - 2) return rests[i];
+                if (rests[i] < from - 2) return rests[i];
               return null; // already at the top
             };
-            let wheelLock = 0;
             let wheelDir = 0;
             let recentMag = 0;
             let lastWheelAt = 0;
+            let dragAccum = 0;
+            let accumDir = 0;
+            let lastAccumAdvance = 0;
             addEventListener(
               'wheel',
               (e) => {
                 if (!deckOn || e.ctrlKey) return;
                 if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
                 const dir = e.deltaY > 0 ? 1 : -1;
-                const target = adjacent(dir);
-                if (target === null) return;
+                const base = springActive ? springTarget : window.scrollY;
+                const target = adjacentFrom(base, dir);
+                if (target === null) {
+                  cancelSpring();
+                  return;
+                }
                 e.preventDefault();
                 const now = performance.now();
                 const gap = now - lastWheelAt;
                 lastWheelAt = now;
-                recentMag = gap > 250 ? 0 : recentMag * Math.exp(-gap / 180);
+                recentMag = gap > 400 ? 0 : recentMag * Math.exp(-gap / 300);
                 const mag = Math.abs(e.deltaY);
-                const reversal = dir !== wheelDir;
-                if (now < wheelLock && !reversal) return;
-                if (
-                  now >= wheelLock &&
-                  !reversal &&
-                  mag < Math.max(10, recentMag * 1.3)
-                )
-                  return; // decaying inertia tail of the previous gesture
+                // A reversal must be deliberate — trackpads jitter tiny
+                // opposite deltas at the end of a gesture.
+                const reversal = dir !== wheelDir && mag >= 16;
+                let fresh = reversal || mag >= Math.max(16, recentMag * 1.3);
+                if (!fresh) {
+                  // Only genuinely gentle input accumulates into an advance —
+                  // the large early deltas of an inertia tail must not.
+                  if (dir !== accumDir) {
+                    dragAccum = 0;
+                    accumDir = dir;
+                  }
+                  if (mag < 60) {
+                    dragAccum = gap > 300 ? mag : dragAccum + mag;
+                    if (dragAccum > 180 && now - lastAccumAdvance > 450) {
+                      fresh = true;
+                      lastAccumAdvance = now;
+                    }
+                  } else {
+                    dragAccum = 0;
+                  }
+                }
                 if (mag > recentMag) recentMag = mag;
+                if (!fresh) return;
+                dragAccum = 0;
                 wheelDir = dir;
-                wheelLock = now + glide(target) + 350;
+                springTo(target);
               },
               { passive: false },
             );
+
+            // Settle (keyboard, scrollbar, touch): once native scrolling
+            // pauses between two rests, ease to one of them — continuing in
+            // the direction of travel past 8% of the gap.
+            let settleTimer = null;
             let lastY = window.scrollY;
             let scrollDir = 1;
             addEventListener(
@@ -309,15 +339,13 @@ const { title, description } = Astro.props;
                 const yNow = window.scrollY;
                 if (yNow !== lastY) scrollDir = yNow > lastY ? 1 : -1;
                 lastY = yNow;
-                if (glideFrame || !deckOn) return;
+                if (springActive || !deckOn) return;
                 clearTimeout(settleTimer);
                 settleTimer = setTimeout(() => {
                   const y = window.scrollY;
+                  if (springActive || !deckOn) return;
                   // Beyond the last panel's rest is footer territory — free.
-                  if (!deckOn || y > rests[rests.length - 1] + 4) return;
-                  // One deliberate flick is enough: anywhere between two
-                  // rests, the glide continues in the scroll direction.
-                  // Tiny nudges (<8% of the gap) settle back where they were.
+                  if (y > rests[rests.length - 1] + 4) return;
                   let prev = rests[0];
                   let next = rests[rests.length - 1];
                   for (const rest of rests) {
@@ -334,7 +362,7 @@ const { title, description } = Astro.props;
                     else if (progress > 0.92) target = next;
                     else target = scrollDir > 0 ? next : prev;
                   }
-                  if (Math.abs(target - y) > 2) glide(target);
+                  if (Math.abs(target - y) > 2) springTo(target);
                 }, 170);
               },
               { passive: true },
