@@ -82,14 +82,16 @@ const items = [
     padding: 0.6rem 1.4rem;
     border-radius: 999px;
     border: 1px solid transparent;
+    /* blur is permanently on — toggling backdrop-filter mid-scroll causes a
+       visible hitch as the effect layer is created */
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
   }
 
   .bar.scrolled {
     background: var(--nav-bg);
     border-color: var(--hairline);
     box-shadow: var(--nav-shadow);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
   }
 
   @media (prefers-reduced-motion: no-preference) {

@@ -204,7 +204,9 @@ body {
   line-height: 1.6;
 }
 
-/* Faint fixed gradient mesh behind everything — panels glide over it. */
+/* Faint fixed gradient mesh behind everything — panels glide over it.
+   Deliberately NOT tied to var(--accent): accent changes during scrolling
+   would force a full-viewport repaint of this layer (scroll jank). */
 body::before {
   content: '';
   position: fixed;
@@ -214,14 +216,10 @@ body::before {
   background:
     radial-gradient(
       42% 36% at 24% 18%,
-      color-mix(in srgb, var(--accent) 7%, transparent),
+      rgba(201, 53, 107, 0.07),
       transparent 70%
     ),
-    radial-gradient(
-      48% 42% at 82% 72%,
-      color-mix(in srgb, #5b7c99 9%, transparent),
-      transparent 70%
-    );
+    radial-gradient(48% 42% at 82% 72%, rgba(91, 124, 153, 0.09), transparent 70%);
 }
 
 h1,
@@ -361,12 +359,24 @@ svg.divider path {
   position: relative;
 }
 
+/* Panel alignment is native CSS snap — composited by the browser, so it
+   rides momentum smoothly with no script-driven scrolling to fight it. */
+html.deck {
+  scroll-snap-type: y proximity;
+}
+
 html.deck .panel-track {
   height: 105vh;
+  scroll-snap-align: start;
+  /* cancel scroll-padding-top so a panel snaps exactly where the previous
+     one has fully left the viewport (the track top) */
+  scroll-margin-top: -5rem;
 }
 
 html.deck main > .panel-track:first-child {
   height: 100vh;
+  /* large positive margin clamps this snap point to the very top of page */
+  scroll-margin-top: 10rem;
 }
 
 html.deck main > .panel-track:last-child {
