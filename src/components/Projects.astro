@@ -17,24 +17,24 @@ const real = (url?: string) =>
 
 <ul class="projects" role="list">
   {
-    items.map((p) => {
+    items.map((p, i) => {
       const links = Object.entries(p.links ?? {}).filter(([, url]) =>
         real(url),
       );
       return (
-        <li class:list={['project', { 'has-image': real(p.image) }]}>
+        <li class="project card reveal" style={`--i: ${i}`}>
           {real(p.image) && (
             <img
               class="image"
               src={p.image}
               alt={p.imageAlt ?? ''}
-              width="160"
-              height="120"
+              width="360"
+              height="200"
               loading="lazy"
               decoding="async"
             />
           )}
-          <div>
+          <div class="body">
             <h3>{p.name}</h3>
             <p class="desc">{p.description}</p>
             {links.length > 0 && (
@@ -56,43 +56,45 @@ const real = (url?: string) =>
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 
   .project {
-    margin-bottom: var(--space-5);
-  }
-
-  .project:last-child {
-    margin-bottom: 0;
-  }
-
-  .project.has-image {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-4);
-    align-items: start;
+    overflow: hidden; /* clips the image to the card radius */
+    display: flex;
+    flex-direction: column;
   }
 
   .image {
-    width: 10rem;
-    height: 7.5rem;
+    width: 100%;
+    height: 11rem;
     object-fit: cover;
-    border: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .body {
+    padding: 1.3rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 
   h3 {
     font-size: var(--step-1);
     line-height: 1.3;
-    margin: 0 0 var(--space-1);
+    margin: 0 0 var(--space-2);
   }
 
   .desc {
     margin: 0;
-    max-width: 60ch;
   }
 
   .links {
-    margin: var(--space-2) 0 0;
+    margin: var(--space-3) 0 0;
+    padding-top: var(--space-3);
+    margin-top: auto;
     font-family: var(--font-mono);
     font-size: var(--step--1);
     display: flex;
@@ -100,8 +102,14 @@ const real = (url?: string) =>
     gap: var(--space-2) var(--space-3);
   }
 
-  @media (max-width: 480px) {
-    .project.has-image {
+  @media (max-width: 980px) {
+    .projects {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .projects {
       grid-template-columns: 1fr;
     }
   }

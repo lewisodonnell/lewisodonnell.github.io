@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import Base from './Base.astro';
-import SiteNav from '../components/SiteNav.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import { SITE } from '../lib/site';
 import 'katex/dist/katex.min.css';
 
@@ -20,8 +20,8 @@ const fmt = date.toLocaleDateString('en-GB', {
 ---
 
 <Base title={`${title} — ${SITE.name}`} description={summary}>
-  <SiteNav />
-  <main id="main" class="wrap">
+  <SiteHeader />
+  <main id="main" class="wrap-narrow">
     <article class="prose">
       <h1>{title}</h1>
       <p class="post-meta">

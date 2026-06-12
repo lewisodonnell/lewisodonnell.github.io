@@ -1,0 +1,123 @@
+---
+// Floating pill navigation. Transparent over the page top; gains its border,
+// blur and shadow once the page scrolls (class toggled by the inline script
+// in Base.astro, which also drives the scroll-spy `current` state).
+import { SITE } from '../lib/site';
+
+interface Props {
+  home?: boolean;
+}
+const { home = false } = Astro.props;
+const prefix = home ? '' : '/';
+
+const items = [
+  ['About', `${prefix}#about`],
+  ['News', `${prefix}#news`],
+  ['Publications', `${prefix}#publications`],
+  ['Work', `${prefix}#work`],
+  ['Writing', `${prefix}#writing`],
+];
+---
+
+<header class="site-header">
+  <div class="bar" data-nav>
+    <a class="brand" href="/">{SITE.name}</a>
+    <nav aria-label="Sections">
+      <ul role="list">
+        {
+          items.map(([label, href]) => (
+            <li>
+              <a href={href}>{label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 50;
+    padding-inline: clamp(0.75rem, 3vw, 2rem);
+  }
+
+  .bar {
+    max-width: var(--wrap-wide);
+    margin-inline: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+
+  .bar.scrolled {
+    background: rgba(255, 255, 255, 0.86);
+    border-color: var(--hairline);
+    box-shadow: 0 4px 18px rgba(22, 24, 29, 0.06);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bar {
+      transition:
+        background 250ms ease,
+        border-color 250ms ease,
+        box-shadow 250ms ease;
+    }
+  }
+
+  .brand {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-size: 1.125rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  nav a {
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  nav a:hover,
+  nav a.current {
+    color: var(--accent);
+  }
+
+  @media (max-width: 620px) {
+    .brand {
+      display: none;
+    }
+
+    .bar {
+      padding: 0.55rem 1rem;
+    }
+
+    nav {
+      width: 100%;
+    }
+
+    ul {
+      justify-content: space-between;
+      gap: 0.6rem;
+      overflow-x: auto;
+    }
+  }
+</style>

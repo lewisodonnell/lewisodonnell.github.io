@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import SignalDivider from '../components/SignalDivider.astro';
 import { SITE } from '../lib/site';
 ---
@@ -9,7 +10,8 @@ import { SITE } from '../lib/site';
   description="This page doesn’t exist."
 >
   <meta name="robots" content="noindex" slot="head" />
-  <main id="main" class="wrap">
+  <SiteHeader />
+  <main id="main" class="wrap-narrow">
     <h1>404</h1>
     <p>There’s no page at this address. The signal is flat.</p>
     <SignalDivider seed={404} />

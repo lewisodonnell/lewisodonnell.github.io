@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import SiteNav from '../../components/SiteNav.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
 import WritingList from '../../components/WritingList.astro';
 import { SITE } from '../../lib/site';
 
@@ -14,7 +14,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   title={`Writing — ${SITE.name}`}
   description="Notes on time-series foundation models, fusion, and machine learning research."
 >
-  <SiteNav current="blog" />
+  <SiteHeader />
   <main id="main" class="wrap">
     <h1>Writing</h1>
     <WritingList posts={posts} />

@@ -20,17 +20,18 @@ const fmt = (d: Date) =>
     <p class="empty">Nothing here yet.</p>
   ) : (
     <ul class="posts" role="list">
-      {posts.map((post) => (
-        <li>
-          <time class="date" datetime={post.data.date.toISOString().slice(0, 10)}>
-            {fmt(post.data.date)}
-          </time>
-          <div>
-            <a class="title" href={`/blog/${post.id}/`}>
-              {post.data.title}
-            </a>
-            <p class="summary">{post.data.summary}</p>
-          </div>
+      {posts.map((post, i) => (
+        <li class="reveal" style={`--i: ${i}`}>
+          <a class="card post" href={`/blog/${post.id}/`}>
+            <time
+              class="date"
+              datetime={post.data.date.toISOString().slice(0, 10)}
+            >
+              {fmt(post.data.date)}
+            </time>
+            <span class="title">{post.data.title}</span>
+            <span class="summary">{post.data.summary}</span>
+          </a>
         </li>
       ))}
     </ul>
@@ -42,31 +43,48 @@ const fmt = (d: Date) =>
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
   }
 
-  li {
-    display: grid;
-    grid-template-columns: 6.5rem 1fr;
-    gap: var(--space-3);
-    padding: var(--space-2) 0;
+  .post {
+    display: block;
+    height: 100%;
+    padding: 1.25rem 1.4rem;
+    text-decoration: none;
+    color: inherit;
   }
 
   .date {
+    display: block;
     font-family: var(--font-mono);
     font-size: var(--step--1);
     color: var(--ink-secondary);
-    padding-top: 0.32em;
+    margin-bottom: var(--space-2);
   }
 
   .title {
+    display: block;
     font-family: var(--font-display);
     font-optical-sizing: auto;
     font-size: var(--step-1);
     line-height: 1.3;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .title {
+      transition: color 150ms ease;
+    }
+  }
+
+  .post:hover .title {
+    color: var(--accent);
+  }
+
   .summary {
-    margin: var(--space-1) 0 0;
+    display: block;
+    margin-top: var(--space-1);
     color: var(--ink-secondary);
     font-size: 0.9375rem;
   }
@@ -74,5 +92,11 @@ const fmt = (d: Date) =>
   .empty {
     color: var(--ink-secondary);
     margin: 0;
+  }
+
+  @media (max-width: 720px) {
+    .posts {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

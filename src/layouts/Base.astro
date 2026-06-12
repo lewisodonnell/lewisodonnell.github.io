@@ -13,11 +13,80 @@ const { title, description } = Astro.props;
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
+    <script is:inline>
+      // Gate for scroll-effect styles: without JS the page renders fully
+      // visible, with no hidden reveal states.
+      document.documentElement.classList.add('js');
+    </script>
     <slot name="head" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <slot />
     <Footer />
+    <script is:inline>
+      // The site's only JavaScript (~1KB, no dependencies): scroll reveals,
+      // self-drawing trace dividers, nav scroll state, and scroll-spy.
+      (() => {
+        const nav = document.querySelector('[data-nav]');
+        if (nav) {
+          const onScroll = () =>
+            nav.classList.toggle('scrolled', window.scrollY > 8);
+          onScroll();
+          addEventListener('scroll', onScroll, { passive: true });
+        }
+
+        const reveal = new IntersectionObserver(
+          (entries, observer) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                observer.unobserve(entry.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px' },
+        );
+        document
+          .querySelectorAll('.reveal, svg.divider')
+          .forEach((el) => reveal.observe(el));
+
+        const links = [
+          ...document.querySelectorAll('[data-nav] a[href*="#"]'),
+        ].filter((a) => a.hash && document.querySelector(a.hash));
+        if (links.length) {
+          const setCurrent = (hash) => {
+            for (const link of links) {
+              const current = link.hash === hash;
+              link.classList.toggle('current', current);
+              if (current) link.setAttribute('aria-current', 'true');
+              else link.removeAttribute('aria-current');
+            }
+          };
+          const spy = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (entry.isIntersecting) setCurrent('#' + entry.target.id);
+              }
+            },
+            { rootMargin: '-35% 0px -60% 0px' },
+          );
+          links.forEach((link) =>
+            spy.observe(document.querySelector(link.hash)),
+          );
+          // Short final sections never reach the spy band — at the page
+          // bottom, the last section wins.
+          addEventListener(
+            'scroll',
+            () => {
+              const doc = document.documentElement;
+              if (window.innerHeight + window.scrollY >= doc.scrollHeight - 8)
+                setCurrent(links[links.length - 1].hash);
+            },
+            { passive: true },
+          );
+        }
+      })();
+    </script>
   </body>
 </html>

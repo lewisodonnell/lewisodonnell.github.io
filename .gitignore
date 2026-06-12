@@ -5,5 +5,5 @@ dist/
 .DS_Store
 npm-debug.log*
 
-# cached source font for the OG generator (re-downloaded on demand)
-scripts/.fonts/
+# local utilities: cached OG font, screenshot/scroll-test helpers
+scripts/.*

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import Masthead from '../components/Masthead.astro';
 import Section from '../components/Section.astro';
 import About from '../components/About.astro';
@@ -36,8 +37,9 @@ const personSchema = JSON.stringify({
     set:html={personSchema}
     slot="head"
   />
-  <Masthead />
+  <SiteHeader home />
   <main id="main" class="wrap">
+    <Masthead />
     <Section id="about" title="About" seed={2}>
       <About />
     </Section>

@@ -20,6 +20,7 @@
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "@rollup/plugin-yaml": "^5.0.0",
+    "playwright": "^1.60.0",
     "satori": "^0.26.0"
   }
 }

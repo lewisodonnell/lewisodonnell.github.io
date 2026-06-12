@@ -1,8 +1,9 @@
 # lewisodonnell.github.io
 
 Personal academic website. [Astro](https://astro.build), fully static output,
-zero client-side JavaScript, vanilla CSS with design tokens. Served from
-<https://lewisodonnell.github.io>.
+vanilla CSS with design tokens, and a single ~1KB inline script (no
+frameworks) for scroll reveals, the self-drawing trace dividers, nav scroll
+state, and scroll-spy. Served from <https://lewisodonnell.github.io>.
 
 ## Run locally
 

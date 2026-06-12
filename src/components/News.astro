@@ -17,8 +17,8 @@ const fmt = (d: string) =>
 
 <ul class="news" role="list">
   {
-    items.map((item) => (
-      <li>
+    items.map((item, i) => (
+      <li class="card reveal" style={`--i: ${i}`}>
         <time class="date" datetime={item.date}>
           {fmt(item.date)}
         </time>
@@ -33,19 +33,36 @@ const fmt = (d: string) =>
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 
   li {
-    display: grid;
-    grid-template-columns: 6.5rem 1fr;
-    gap: var(--space-3);
-    padding: var(--space-2) 0;
+    padding: 1.15rem 1.3rem;
   }
 
   .date {
+    display: block;
     font-family: var(--font-mono);
     font-size: var(--step--1);
     color: var(--ink-secondary);
-    padding-top: 0.22em;
+    margin-bottom: var(--space-2);
+  }
+
+  .text {
+    display: block;
+  }
+
+  @media (max-width: 900px) {
+    .news {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .news {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

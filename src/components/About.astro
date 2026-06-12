@@ -37,12 +37,17 @@ import { hasHeadshot } from '../lib/assets';
 <style>
   .about {
     display: grid;
-    gap: var(--space-4) var(--space-5);
+    gap: var(--space-4) var(--space-6);
   }
 
   .about.has-photo {
     grid-template-columns: 1fr auto;
     align-items: start;
+  }
+
+  .bio {
+    columns: 2;
+    column-gap: var(--space-6);
   }
 
   .bio p {
@@ -58,6 +63,13 @@ import { hasHeadshot } from '../lib/assets';
     height: 13.125rem;
     object-fit: cover;
     border: 1px solid var(--hairline);
+    border-radius: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .bio {
+      columns: 1;
+    }
   }
 
   @media (max-width: 600px) {
