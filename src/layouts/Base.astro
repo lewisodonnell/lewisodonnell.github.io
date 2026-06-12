@@ -254,82 +254,15 @@ const { title, description } = Astro.props;
             const cancelSpring = () => {
               springActive = false;
             };
-            // Touch, keyboard and scrollbar grabs take authority back.
-            for (const ev of ['touchstart', 'keydown', 'mousedown'])
+            // Scrolling itself is fully native — no wheel interception, no
+            // preventDefault. Any user input immediately takes authority
+            // back from the settle spring.
+            for (const ev of ['wheel', 'touchstart', 'keydown', 'mousedown'])
               addEventListener(ev, cancelSpring, { passive: true });
 
-            // Wheel: each fresh gesture moves the target one panel further,
-            // so rolling the wheel travels continuously through the deck.
-            // Trackpad inertia tails fold into the running motion, gentle
-            // sustained drags accumulate into advances, and a reverse flick
-            // turns around mid-flight. Pinch-zoom, horizontal scrolling, the
-            // top edge and the footer zone stay native.
-            const adjacentFrom = (from, dir) => {
-              if (dir > 0) {
-                for (const r of rests) if (r > from + 2) return r;
-                return null; // past the last panel — footer is native
-              }
-              for (let i = rests.length - 1; i >= 0; i--)
-                if (rests[i] < from - 2) return rests[i];
-              return null; // already at the top
-            };
-            let wheelDir = 0;
-            let recentMag = 0;
-            let lastWheelAt = 0;
-            let dragAccum = 0;
-            let accumDir = 0;
-            let lastAccumAdvance = 0;
-            addEventListener(
-              'wheel',
-              (e) => {
-                if (!deckOn || e.ctrlKey) return;
-                if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-                const dir = e.deltaY > 0 ? 1 : -1;
-                const base = springActive ? springTarget : window.scrollY;
-                const target = adjacentFrom(base, dir);
-                if (target === null) {
-                  cancelSpring();
-                  return;
-                }
-                e.preventDefault();
-                const now = performance.now();
-                const gap = now - lastWheelAt;
-                lastWheelAt = now;
-                recentMag = gap > 400 ? 0 : recentMag * Math.exp(-gap / 300);
-                const mag = Math.abs(e.deltaY);
-                // A reversal must be deliberate — trackpads jitter tiny
-                // opposite deltas at the end of a gesture.
-                const reversal = dir !== wheelDir && mag >= 16;
-                let fresh = reversal || mag >= Math.max(16, recentMag * 1.3);
-                if (!fresh) {
-                  // Only genuinely gentle input accumulates into an advance —
-                  // the large early deltas of an inertia tail must not.
-                  if (dir !== accumDir) {
-                    dragAccum = 0;
-                    accumDir = dir;
-                  }
-                  if (mag < 60) {
-                    dragAccum = gap > 300 ? mag : dragAccum + mag;
-                    if (dragAccum > 180 && now - lastAccumAdvance > 450) {
-                      fresh = true;
-                      lastAccumAdvance = now;
-                    }
-                  } else {
-                    dragAccum = 0;
-                  }
-                }
-                if (mag > recentMag) recentMag = mag;
-                if (!fresh) return;
-                dragAccum = 0;
-                wheelDir = dir;
-                springTo(target);
-              },
-              { passive: false },
-            );
-
-            // Settle (keyboard, scrollbar, touch): once native scrolling
-            // pauses between two rests, ease to one of them — continuing in
-            // the direction of travel past 8% of the gap.
+            // Settle: once native scrolling pauses between two rests, ease
+            // to one of them — continuing in the direction of travel past
+            // 8% of the gap, so a flick plus its momentum lands forward.
             let settleTimer = null;
             let lastY = window.scrollY;
             let scrollDir = 1;
