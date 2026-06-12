@@ -250,9 +250,57 @@ const { title, description } = Astro.props;
               };
               cancelGlide();
               glideFrame = requestAnimationFrame(step);
+              return duration;
             };
-            for (const ev of ['wheel', 'touchstart', 'keydown'])
+            for (const ev of ['touchstart', 'keydown'])
               addEventListener(ev, cancelGlide, { passive: true });
+
+            // Wheel takeover: one wheel gesture moves exactly one panel.
+            // Trackpad inertia counts as the same gesture; a reverse flick
+            // mid-glide turns around. Pinch-zoom, horizontal scrolling, the
+            // top edge and the footer zone stay native.
+            const adjacent = (dir) => {
+              const y = window.scrollY;
+              if (dir > 0) {
+                for (const r of rests) if (r > y + 2) return r;
+                return null; // past the last panel — footer is native
+              }
+              for (let i = rests.length - 1; i >= 0; i--)
+                if (rests[i] < y - 2) return rests[i];
+              return null; // already at the top
+            };
+            let wheelLock = 0;
+            let wheelDir = 0;
+            let recentMag = 0;
+            let lastWheelAt = 0;
+            addEventListener(
+              'wheel',
+              (e) => {
+                if (!deckOn || e.ctrlKey) return;
+                if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+                const dir = e.deltaY > 0 ? 1 : -1;
+                const target = adjacent(dir);
+                if (target === null) return;
+                e.preventDefault();
+                const now = performance.now();
+                const gap = now - lastWheelAt;
+                lastWheelAt = now;
+                recentMag = gap > 250 ? 0 : recentMag * Math.exp(-gap / 180);
+                const mag = Math.abs(e.deltaY);
+                const reversal = dir !== wheelDir;
+                if (now < wheelLock && !reversal) return;
+                if (
+                  now >= wheelLock &&
+                  !reversal &&
+                  mag < Math.max(10, recentMag * 1.3)
+                )
+                  return; // decaying inertia tail of the previous gesture
+                if (mag > recentMag) recentMag = mag;
+                wheelDir = dir;
+                wheelLock = now + glide(target) + 350;
+              },
+              { passive: false },
+            );
             let lastY = window.scrollY;
             let scrollDir = 1;
             addEventListener(

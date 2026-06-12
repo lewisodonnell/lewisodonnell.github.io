@@ -362,11 +362,11 @@ svg.divider path {
 }
 
 html.deck .panel-track {
-  height: 125vh;
+  height: 105vh;
 }
 
 html.deck main > .panel-track:first-child {
-  height: 115vh;
+  height: 100vh;
 }
 
 html.deck main > .panel-track:last-child {
