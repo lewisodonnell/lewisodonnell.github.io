@@ -40,19 +40,49 @@ const personSchema = JSON.stringify({
   <SiteHeader home />
   <main id="main" class="wrap">
     <Masthead />
-    <Section id="about" title="About" tint="#5B7C99">
+    <Section
+      id="about"
+      title="About"
+      accent="#44688C"
+      accentDark="#7FA8CF"
+      texture="grain"
+    >
       <About />
     </Section>
-    <Section id="news" title="News" tint="#997C5B">
+    <Section
+      id="news"
+      title="News"
+      accent="#8C6238"
+      accentDark="#C99A66"
+      texture="grid"
+    >
       <News />
     </Section>
-    <Section id="publications" title="Publications" tint="#7C5B99">
+    <Section
+      id="publications"
+      title="Publications"
+      accent="#6B4A8C"
+      accentDark="#A98BD0"
+      texture="dots"
+    >
       <Publications />
     </Section>
-    <Section id="work" title="Selected work" tint="#5B9978">
+    <Section
+      id="work"
+      title="Selected work"
+      accent="#3E7A5E"
+      accentDark="#6FBF97"
+      texture="hatch"
+    >
       <Projects />
     </Section>
-    <Section id="blog" title="Blog" tint="var(--accent)">
+    <Section
+      id="blog"
+      title="Blog"
+      accent="#C9356B"
+      accentDark="#E0608F"
+      texture="scan"
+    >
       <WritingList posts={posts} />
     </Section>
   </main>

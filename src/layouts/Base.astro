@@ -38,19 +38,41 @@ const { title, description } = Astro.props;
         const motionOK = !matchMedia('(prefers-reduced-motion: reduce)')
           .matches;
 
+        // Per-section accent: the section currently in view recolours the
+        // whole page (nav, waves, spotlight, link hovers) via --accent.
+        let currentSection = null;
+        const isDark = () => {
+          const root = document.documentElement;
+          return (
+            root.getAttribute('data-theme') === 'dark' ||
+            (!root.getAttribute('data-theme') &&
+              matchMedia('(prefers-color-scheme: dark)').matches)
+          );
+        };
+        const applyAccent = () => {
+          const root = document.documentElement;
+          const colour =
+            currentSection &&
+            (isDark()
+              ? currentSection.dataset.accentDark
+              : currentSection.dataset.accent);
+          if (colour) root.style.setProperty('--accent', colour);
+          else root.style.removeProperty('--accent');
+        };
+        matchMedia('(prefers-color-scheme: dark)').addEventListener(
+          'change',
+          applyAccent,
+        );
+
         const toggle = document.querySelector('[data-theme-toggle]');
         if (toggle) {
           toggle.addEventListener('click', () => {
-            const root = document.documentElement;
-            const isDark =
-              root.getAttribute('data-theme') === 'dark' ||
-              (!root.getAttribute('data-theme') &&
-                matchMedia('(prefers-color-scheme: dark)').matches);
-            const next = isDark ? 'light' : 'dark';
-            root.setAttribute('data-theme', next);
+            const next = isDark() ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
             try {
               localStorage.setItem('theme', next);
             } catch {}
+            applyAccent();
           });
         }
 
@@ -63,11 +85,19 @@ const { title, description } = Astro.props;
         }
 
         // Toggled (not one-shot) so the reveals and wave draws replay every
-        // time an element scrolls back into view.
+        // time an element scrolls back into view. On exit we record which
+        // edge the element left through — it re-enters from that side
+        // (data-from drives the direction-aware hidden transforms).
         const reveal = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
-              entry.target.classList.toggle('in-view', entry.isIntersecting);
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+              } else {
+                entry.target.classList.remove('in-view');
+                entry.target.dataset.from =
+                  entry.boundingClientRect.top < 0 ? 'above' : 'below';
+              }
             }
           },
           { rootMargin: '0px 0px -8% 0px' },
@@ -196,11 +226,13 @@ const { title, description } = Astro.props;
         if (links.length) {
           const setCurrent = (hash) => {
             for (const link of links) {
-              const current = link.hash === hash;
+              const current = !!hash && link.hash === hash;
               link.classList.toggle('current', current);
               if (current) link.setAttribute('aria-current', 'true');
               else link.removeAttribute('aria-current');
             }
+            currentSection = hash ? document.querySelector(hash) : null;
+            applyAccent();
           };
           const spy = new IntersectionObserver(
             (entries) => {
@@ -213,13 +245,18 @@ const { title, description } = Astro.props;
           links.forEach((link) =>
             spy.observe(document.querySelector(link.hash)),
           );
-          // Short final sections never reach the spy band — at the page
-          // bottom, the last section wins.
+          // Above the first section nothing is current (base accent); short
+          // final sections never reach the spy band, so at the very bottom
+          // the last section wins.
           addEventListener(
             'scroll',
             () => {
               const doc = document.documentElement;
-              if (window.innerHeight + window.scrollY >= doc.scrollHeight - 8)
+              if (window.scrollY < 160) setCurrent(null);
+              else if (
+                window.innerHeight + window.scrollY >=
+                doc.scrollHeight - 8
+              )
                 setCurrent(links[links.length - 1].hash);
             },
             { passive: true },

@@ -4,17 +4,25 @@ import SignalDivider from './SignalDivider.astro';
 interface Props {
   id: string;
   title: string;
-  /** CSS colour mixed into the panel's top edge (e.g. '#5B7C99' or 'var(--accent)'). */
-  tint?: string;
+  /** Section accent (light theme) — becomes the page-wide --accent while
+      this section is in view, and tints the panel background. */
+  accent: string;
+  /** Brighter accent variant used while the dark theme is active. */
+  accentDark: string;
+  /** Background texture for this panel. */
+  texture?: 'grain' | 'grid' | 'dots' | 'hatch' | 'scan';
 }
-const { id, title, tint } = Astro.props;
+const { id, title, accent, accentDark, texture = 'grain' } = Astro.props;
 ---
 
 <section
   id={id}
   aria-labelledby={`${id}-heading`}
   class="section"
-  style={tint ? `--tint: ${tint}` : undefined}
+  data-accent={accent}
+  data-accent-dark={accentDark}
+  data-texture={texture}
+  style={`--tint: ${accent}`}
 >
   <SignalDivider />
   <h2 id={`${id}-heading`} class="reveal">{title}</h2>
@@ -22,8 +30,8 @@ const { id, title, tint } = Astro.props;
 </section>
 
 <style>
-  /* Each section is a full-height floating panel: its own tint, paper
-     grain, border and long shadow — planes stacked over the page mesh. */
+  /* Each section is a full-height floating panel: its own accent tint,
+     texture, border and long shadow — planes stacked over the page mesh. */
   .section {
     position: relative;
     overflow: hidden;
@@ -43,6 +51,12 @@ const { id, title, tint } = Astro.props;
     box-shadow: var(--panel-shadow);
   }
 
+  /* The deck overlap: each panel tucks slightly under the one before it
+     (z-order lives in global.css — earlier panels in front). */
+  .section + .section {
+    margin-top: -3.25rem;
+  }
+
   .section::before {
     content: '';
     position: absolute;
@@ -51,6 +65,47 @@ const { id, title, tint } = Astro.props;
     background-image: var(--grain);
     opacity: 0.6;
     border-radius: inherit;
+  }
+
+  .section[data-texture='grid']::before {
+    opacity: 1;
+    background-image: linear-gradient(
+        color-mix(in srgb, var(--ink) 5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ink) 5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 28px 28px;
+  }
+
+  .section[data-texture='dots']::before {
+    opacity: 1;
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--ink) 9%, transparent) 1px,
+      transparent 1.5px
+    );
+    background-size: 18px 18px;
+  }
+
+  .section[data-texture='hatch']::before {
+    opacity: 1;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--ink) 4%, transparent) 0 1px,
+      transparent 1px 13px
+    );
+  }
+
+  .section[data-texture='scan']::before {
+    opacity: 1;
+    background-image: repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ink) 5%, transparent) 0 1px,
+      transparent 1px 9px
+    );
   }
 
   h2 {
@@ -65,6 +120,10 @@ const { id, title, tint } = Astro.props;
       margin: 1.5rem 0;
       padding: 1.75rem 1.25rem;
       border-radius: 18px;
+    }
+
+    .section + .section {
+      margin-top: -0.75rem;
     }
   }
 </style>
