@@ -253,25 +253,40 @@ const { title, description } = Astro.props;
             };
             for (const ev of ['wheel', 'touchstart', 'keydown'])
               addEventListener(ev, cancelGlide, { passive: true });
+            let lastY = window.scrollY;
+            let scrollDir = 1;
             addEventListener(
               'scroll',
               () => {
+                const yNow = window.scrollY;
+                if (yNow !== lastY) scrollDir = yNow > lastY ? 1 : -1;
+                lastY = yNow;
                 if (glideFrame || !deckOn) return;
                 clearTimeout(settleTimer);
                 settleTimer = setTimeout(() => {
                   const y = window.scrollY;
                   // Beyond the last panel's rest is footer territory — free.
                   if (!deckOn || y > rests[rests.length - 1] + 4) return;
-                  let target = null;
-                  let best = Infinity;
+                  // One deliberate flick is enough: anywhere between two
+                  // rests, the glide continues in the scroll direction.
+                  // Tiny nudges (<8% of the gap) settle back where they were.
+                  let prev = rests[0];
+                  let next = rests[rests.length - 1];
                   for (const rest of rests) {
-                    const d = Math.abs(rest - y);
-                    if (d < best) {
-                      best = d;
-                      target = rest;
+                    if (rest <= y) prev = rest;
+                    else {
+                      next = rest;
+                      break;
                     }
                   }
-                  if (target !== null && best > 2) glide(target);
+                  let target = prev;
+                  if (next !== prev) {
+                    const progress = (y - prev) / (next - prev);
+                    if (progress < 0.08) target = prev;
+                    else if (progress > 0.92) target = next;
+                    else target = scrollDir > 0 ? next : prev;
+                  }
+                  if (Math.abs(target - y) > 2) glide(target);
                 }, 170);
               },
               { passive: true },
